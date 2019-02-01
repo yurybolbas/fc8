@@ -9,7 +9,7 @@ const dbname = 'mynews';
 
 mongoose.connect(`${url}/${dbname}`, {useNewUrlParser: true});
 
-const newsSchema = new mongoose.Schema({
+const articleSchema = new mongoose.Schema({
 	id: String,
 	source: {
 		id: String,
@@ -24,8 +24,9 @@ const newsSchema = new mongoose.Schema({
 	content: String
 });
 
-var News = mongoose.model('News', newsSchema);
+const Articles = mongoose.model('Article', articleSchema);
 
+Articles.findById(id, (err, Article) => {});
 
 
 
