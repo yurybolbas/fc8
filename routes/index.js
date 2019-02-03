@@ -2,12 +2,18 @@ var express = require('express');
 var router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const mongoose = require('mongoose');
 
+var bluebird = require("bluebird");
+const mongoose = require('mongoose');
+mongoose.Promise = bluebird.Promise;
 const url = 'mongodb://localhost:27017';
-const dbname = 'mynews';
+const dbname = 'fc8';
 
 mongoose.connect(`${url}/${dbname}`, {useNewUrlParser: true});
+
+// mongoose.Promise = global.Promise;
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const articleSchema = new mongoose.Schema({
 	id: String,
@@ -24,106 +30,63 @@ const articleSchema = new mongoose.Schema({
 	content: String
 });
 
-const Articles = mongoose.model('Article', articleSchema);
-
-Articles.findById(id, (err, Article) => {});
-
-
-
-/* GET home page. */
-router.get('/', function (req, res, next) {
-	res.render('index', {title: 'Express'});
-});
+var collectionName = 'articles';
+const Article = mongoose.model('Article', articleSchema, collectionName);
 
 router.get('/news', function (req, res, next) {
-	let url = path.resolve(__dirname, '../top-headlines.json');
-	fs.readFile(url, 'utf-8', (err, content) => {
-		if (err) {
-			next(err);
-			return;
-		}
-		content = JSON.parse(content);
-		res.json(content);
+	Article.find({} ,(err, result) => {
+			if (err) {
+				next(err);
+			}
+			console.log(result);
+	})
+	.then(() => {
+		res.sendStatus(200);
 	});
-
 });
 
 router.get('/news/:id', function (req, res, next) {
-	let url = path.resolve(__dirname, '../top-headlines.json');
-	fs.readFile(url, 'utf-8', (err, content) => {
-		if (err) {
-			next(err);
-			return;
-		}
-		content = JSON.parse(content);
-		let result = content.articles.filter(el => {
-			return el.id == req.params.id;
-		});
-		res.json(result[0]);
+  console.log(req.params.id);
+	Article.findOne({id: req.params.id}, (err, result) => {
+			if (err) {
+				next(err);
+			}
+			console.log(result);
+	})
+	.then(() => {
+		res.sendStatus(200);
 	});
-
 });
 
 router.post('/news', function (req, res, next) {
-	let url = path.resolve(__dirname, '../top-headlines.json');
-	fs.readFile(url, 'utf-8', (err, content) => {
-		if (err) {
-			next(err);
-			return;
-		}
-		content = JSON.parse(content);
-		content.articles.push(req.body);
-		// res.json(result[0]);
-		fs.writeFile(url, JSON.stringify(content), 'utf-8', () => {
-			res.sendStatus(200);
-		});
+	newContent = req.body;
+	Article.create(newContent, (err, result) => {
+			if (err) {
+				next(err);
+			}
+			console.log(result);
+	})
+	.then(() => {
+		res.sendStatus(200);
 	});
-
 });
 
 router.put('/news/:id', function (req, res, next) {
-	let url = path.resolve(__dirname, '../top-headlines.json');
-	fs.readFile(url, 'utf-8', (err, content) => {
-		if (err) {
-			next(err);
-			return;
-		}
-		content = JSON.parse(content);
-		let result = content.articles.findIndex(el => {
-			return el.id == req.params.id;
-		});
-		content.articles[result] = req.body;
-		fs.writeFile(url, JSON.stringify(content), 'utf-8', () => {
-			res.sendStatus(200);
-		});
-
+	console.log(req.params.id);
+	Article.findOneAndUpdate({id: req.params.id}, { 'source.name': 'Edited ABC News' }, (err, result) => {
+			if (err) {
+				next(err);
+			}
+			console.log(result);
+	})
+	.then(() => {
+		res.sendStatus(200);
 	});
-
 });
 
 router.delete('/news/:id', function (req, res, next) {
-	let url = path.resolve(__dirname, '../top-headlines.json');
-	fs.readFile(url, 'utf-8', (err, content) => {
-		if (err) {
-			next(err);
-			return;
-		}
-		content = JSON.parse(content);
-		let result = content.articles.findIndex(el => {
-			return el.id == req.params.id;
-		});
-		console.log(result);
-		if (result == -1) {
-			console.log("no element");
-		}
-		// content.articles[result] = req.body;
-		content.articles.splice(result, 1);
-		fs.writeFile(url, JSON.stringify(content), 'utf-8', () => {
-			res.sendStatus(200);
-		});
-
-	});
-
+	console.log(req.params.id);
+	Article.findOneAndDelete({ id: req.params.id }, (err) => {});
 });
 
 module.exports = router;
