@@ -34,59 +34,75 @@ var collectionName = 'articles';
 const Article = mongoose.model('Article', articleSchema, collectionName);
 
 router.get('/news', function (req, res, next) {
+	console.log(req.method);
 	Article.find({} ,(err, result) => {
-			if (err) {
+		console.log(result);
+		if (!result) {
 				next(err);
+				return;
 			}
-			console.log(result);
 	})
-	.then(() => {
-		res.sendStatus(200);
+	.then((result) => {
+		res.send(result);
 	});
 });
 
 router.get('/news/:id', function (req, res, next) {
   console.log(req.params.id);
 	Article.findOne({id: req.params.id}, (err, result) => {
-			if (err) {
+		console.log(result);
+		if (!result) {
 				next(err);
+				return;
 			}
-			console.log(result);
 	})
-	.then(() => {
-		res.sendStatus(200);
+	.then((result) => {
+		if (result) {
+			res.send(result);
+		}
 	});
 });
 
 router.post('/news', function (req, res, next) {
 	newContent = req.body;
 	Article.create(newContent, (err, result) => {
-			if (err) {
+		console.log(result);
+		if (!result) {
 				next(err);
+				return;
 			}
-			console.log(result);
+			res.send(newContent);
 	})
-	.then(() => {
-		res.sendStatus(200);
-	});
+	;
 });
 
 router.put('/news/:id', function (req, res, next) {
 	console.log(req.params.id);
 	Article.findOneAndUpdate({id: req.params.id}, { 'source.name': 'Edited ABC News' }, (err, result) => {
-			if (err) {
+		console.log(result);
+		if (!result) {
 				next(err);
+				return;
 			}
-			console.log(result);
 	})
-	.then(() => {
-		res.sendStatus(200);
+	.then((result) => {
+		if (result) {
+			res.send(result);
+		}
 	});
 });
 
 router.delete('/news/:id', function (req, res, next) {
 	console.log(req.params.id);
-	Article.findOneAndDelete({ id: req.params.id }, (err) => {});
+	Article.findOneAndDelete({ id: req.params.id }, (err) => {
+		if (err) {
+			next(err);
+			return;
+		}
+})
+	.then(() => {
+		res.sendStatus(200);
+	});;
 });
 
 module.exports = router;
