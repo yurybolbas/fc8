@@ -102,7 +102,7 @@ router.delete('/news/:id', function (req, res, next) {
 })
 	.then(() => {
 		res.sendStatus(200);
-	});;
+	});
 });
 
 module.exports = router;
